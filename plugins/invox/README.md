@@ -1,13 +1,13 @@
-# Invox Cursor plugin
+# Invox for Cursor
 
-Marketplace plugin that wires Cursor to the hosted Invox MCP at `https://mcp.invox.se/mcp`.
+Connect Cursor to [Invox](https://invox.se) via the hosted MCP at `https://mcp.invox.se/mcp`.
 
-## Auth
+## Setup
 
-Set environment variable `INVOX_API_KEY` to a key from Invox → Settings → Integrations (Pro), or install via the in-app **Add to Cursor** deeplink.
+1. Create an API key in Invox → **Settings → Integrations** (Pro).
+2. Set `INVOX_API_KEY` to that key, **or** use **Add to Cursor** in the Invox app.
 
-## Components
+## Included
 
-- `mcp.json` — remote Streamable HTTP MCP
-- `rules/invox-workflow.mdc` — agent guidance
-- `skills/invox-invoicing/` — invoicing workflows
+- Remote MCP configuration
+- Rules and skills for invoicing workflows
