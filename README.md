@@ -6,8 +6,9 @@ Hosted [Model Context Protocol](https://modelcontextprotocol.io) server for [Inv
 
 | | |
 |--|--|
-| MCP URL | `https://mcp.invox.se/mcp` |
-| Health | `https://mcp.invox.se/health` |
+| MCP URL (custom) | `https://mcp.invox.se/mcp` (DNS CNAME required — see Deploy) |
+| MCP URL (Railway) | `https://invox-mcp-production.up.railway.app/mcp` |
+| Health | `https://invox-mcp-production.up.railway.app/health` |
 | Auth | `Authorization: Bearer invox_...` |
 | Plan | **Pro** (`apiAccess`) |
 
@@ -92,7 +93,20 @@ curl -s http://localhost:3000/health
 
 ## Deploy
 
-Railway (Nixpacks / Dockerfile). Set `INVOX_API_BASE_URL=https://api.invox.se` and map custom domain `mcp.invox.se` to the service.
+Railway project **invox-mcp** (service `invox-mcp`).
+
+- Live health: https://invox-mcp-production.up.railway.app/health
+- Env: `INVOX_API_BASE_URL=https://api.invox.se`, `PORT=3000`
+- Custom domain `mcp.invox.se`: add DNS **CNAME** `mcp` → `rdmizlw5.up.railway.app`, plus Railway TXT verify `_railway-verify.mcp` as shown in the Railway dashboard.
+
+### GitHub (`Edgetive/invox-mcp`)
+
+Local repo is ready with `origin` → `git@github.com:Edgetive/invox-mcp.git`. Create the empty org repo once, then:
+
+```bash
+cd /path/to/invox-mcp
+git push -u origin main
+```
 
 ## License
 
