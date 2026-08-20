@@ -1,14 +1,25 @@
 # Invox MCP
 
-Hosted [Model Context Protocol](https://modelcontextprotocol.io) server for [Invox](https://invox.se). AI agents (Cursor, Claude, etc.) can manage workspaces, clients, invoices, and expenses using a long-lived Invox API key.
+Hosted [Model Context Protocol](https://modelcontextprotocol.io) server for [Invox](https://invox.se), plus a [Cursor plugin](https://github.com/cursor/plugin-template) package under `plugins/invox`.
+
+AI agents (Cursor, Claude, etc.) can manage workspaces, clients, invoices, and expenses using a long-lived Invox API key.
+
+## Cursor plugin
+
+This repo follows the [Cursor plugin template](https://github.com/cursor/plugin-template) layout:
+
+- [`.cursor-plugin/marketplace.json`](.cursor-plugin/marketplace.json) — marketplace metadata
+- [`plugins/invox/`](plugins/invox/) — plugin with `mcp.json`, rules, skills, logo
+- Validate: `node scripts/validate-template.mjs`
+
+Plugin MCP config uses `https://mcp.invox.se/mcp` with `Authorization: Bearer ${env:INVOX_API_KEY}`.
 
 ## Endpoint
 
 | | |
 |--|--|
-| MCP URL (custom) | `https://mcp.invox.se/mcp` (DNS CNAME required — see Deploy) |
-| MCP URL (Railway) | `https://invox-mcp-production.up.railway.app/mcp` |
-| Health | `https://invox-mcp-production.up.railway.app/health` |
+| MCP URL | `https://mcp.invox.se/mcp` |
+| Health | `https://mcp.invox.se/health` |
 | Auth | `Authorization: Bearer invox_...` |
 | Plan | **Pro** (`apiAccess`) |
 
@@ -33,26 +44,7 @@ Manual `~/.cursor/mcp.json`:
 }
 ```
 
-Deeplink format (base64-encode the config object for the `config` query param):
-
-```text
-cursor://anysphere.cursor-deeplink/mcp/install?name=invox&config=<BASE64>
-```
-
-Config JSON before encoding:
-
-```json
-{
-  "url": "https://mcp.invox.se/mcp",
-  "headers": {
-    "Authorization": "Bearer invox_YOUR_KEY"
-  }
-}
-```
-
-## Claude Desktop / other clients
-
-Same remote URL + Bearer header as above (client must support Streamable HTTP MCP).
+Or set `INVOX_API_KEY` and install the plugin from this repo (see `plugins/invox/mcp.json`).
 
 ## Tools (v1)
 
@@ -64,18 +56,13 @@ Same remote URL + Bearer header as above (client must support Streamable HTTP MC
 | `send_invoice` / `mark_invoice_paid` / `cancel_invoice` / `get_invoice_pdf` | Invoice actions |
 | `list_expenses` / `get_expense` / `create_expense` / `update_expense` / `delete_expense` | Expenses |
 
-Example prompts: “Add client Acme AB”, “Draft an invoice for Acme with 10h consulting at 900 SEK”, “Mark invoice INV-104 paid”.
-
 ## Local development
 
 ```bash
-cp .env.example .env   # optional
+cp .env.example .env
 npm install
 INVOX_API_BASE_URL=http://localhost:8080 npm run dev
-```
-
-```bash
-curl -s http://localhost:3000/health
+node scripts/validate-template.mjs
 ```
 
 ## Environment
@@ -87,26 +74,13 @@ curl -s http://localhost:3000/health
 
 ## Security
 
-- Stateless proxy: API keys are only present in request headers; not stored by this service.
-- Keys are hashed at rest in the Invox API; revoke anytime in Settings.
-- Company RBAC and Pro `apiAccess` are enforced by `api.invox.se`.
+- Stateless proxy: API keys only in request headers
+- Pro `apiAccess` and company RBAC enforced by `api.invox.se`
+- OAuth discovery paths return 404 so Cursor uses static Bearer headers
 
 ## Deploy
 
-Railway project **invox-mcp** (service `invox-mcp`).
-
-- Live health: https://invox-mcp-production.up.railway.app/health
-- Env: `INVOX_API_BASE_URL=https://api.invox.se`, `PORT=3000`
-- Custom domain `mcp.invox.se`: add DNS **CNAME** `mcp` → `rdmizlw5.up.railway.app`, plus Railway TXT verify `_railway-verify.mcp` as shown in the Railway dashboard.
-
-### GitHub (`Edgetive/invox-mcp`)
-
-Local repo is ready with `origin` → `git@github.com:Edgetive/invox-mcp.git`. Create the empty org repo once, then:
-
-```bash
-cd /path/to/invox-mcp
-git push -u origin main
-```
+Railway project **invox-mcp**. Custom domain `mcp.invox.se` (Cloudflare → Railway).
 
 ## License
 

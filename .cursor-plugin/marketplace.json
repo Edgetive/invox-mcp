@@ -1,0 +1,19 @@
+{
+  "name": "edgetive",
+  "owner": {
+    "name": "Edgetive",
+    "email": "hello@edgetive.com"
+  },
+  "metadata": {
+    "description": "Edgetive Cursor plugins — Invox invoicing MCP and related tools",
+    "version": "1.0.0",
+    "pluginRoot": "plugins"
+  },
+  "plugins": [
+    {
+      "name": "invox",
+      "source": "./invox",
+      "description": "Hosted Invox MCP — manage invoices, clients, and expenses from Cursor"
+    }
+  ]
+}

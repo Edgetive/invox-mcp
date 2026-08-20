@@ -1,0 +1,22 @@
+{
+  "name": "invox",
+  "displayName": "Invox",
+  "version": "1.0.0",
+  "description": "Connect Cursor to Invox: create clients, draft and send invoices, mark payments, and track expenses via a hosted MCP server.",
+  "author": {
+    "name": "Edgetive",
+    "email": "hello@edgetive.com"
+  },
+  "homepage": "https://invox.se",
+  "repository": "https://github.com/Edgetive/invox-mcp",
+  "license": "Proprietary",
+  "keywords": [
+    "invox",
+    "invoicing",
+    "mcp",
+    "sweden",
+    "accounting",
+    "edgetive"
+  ],
+  "logo": "assets/logo.svg"
+}

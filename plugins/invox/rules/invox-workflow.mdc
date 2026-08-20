@@ -1,0 +1,14 @@
+---
+description: Use Invox MCP tools for Swedish invoicing — clients, invoices, expenses
+alwaysApply: true
+---
+
+# Invox
+
+When the user asks about invoices, clients, customers, expenses, or their Invox workspace:
+
+1. Prefer Invox MCP tools over inventing data.
+2. API keys are company-scoped; omit `company_id` unless the user specifies another workspace.
+3. Confirm destructive actions (delete client/invoice/expense, cancel invoice) before calling tools.
+4. Amounts are typically SEK; dates use `YYYY-MM-DD`.
+5. Create invoices as `DRAFT` unless the user asks to send; use `send_invoice` to email the PDF.

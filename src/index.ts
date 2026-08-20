@@ -33,6 +33,20 @@ app.get("/health", (_req, res) => {
   });
 });
 
+// Cursor prefers OAuth when discovery endpoints exist; we use API-key headers only.
+// Return 404 so clients fall back to configured Authorization headers.
+for (const path of [
+  "/.well-known/oauth-authorization-server",
+  "/.well-known/oauth-protected-resource",
+  "/.well-known/openid-configuration",
+  "/.well-known/oauth-authorization-server/mcp",
+  "/.well-known/oauth-protected-resource/mcp",
+]) {
+  app.get(path, (_req, res) => {
+    res.status(404).json({ error: "not_found" });
+  });
+}
+
 app.post(MCP_PATH, async (req: Request, res: Response) => {
   const authorization = extractAuthorization(req);
   if (!authorization?.toLowerCase().startsWith("bearer invox_")) {

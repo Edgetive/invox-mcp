@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "invox": {
+      "url": "https://mcp.invox.se/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:INVOX_API_KEY}"
+      }
+    }
+  }
+}
