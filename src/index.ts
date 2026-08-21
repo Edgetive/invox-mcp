@@ -9,7 +9,7 @@ const PORT = Number(process.env.PORT || 3000);
 const MCP_PATH = "/mcp";
 
 const app = express();
-app.use(express.json({ limit: "4mb" }));
+app.use(express.json({ limit: "16mb" }));
 
 type Session = {
   transport: StreamableHTTPServerTransport;
@@ -28,7 +28,7 @@ app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
     service: "invox-mcp",
-    version: "1.0.0",
+    version: "1.1.0",
     mcp: MCP_PATH,
   });
 });
