@@ -65,6 +65,10 @@ export function registerExpenseTools(server: McpServer): void {
         vat_amount: z.number().optional(),
         vat_rate: z.number().optional(),
         notes: z.string().optional(),
+        receipt_url: z
+          .string()
+          .optional()
+          .describe("Optional receipt download path from upload_expense_document"),
       },
     },
     async (args) => {
@@ -83,6 +87,7 @@ export function registerExpenseTools(server: McpServer): void {
           vatAmount: args.vat_amount,
           vatRate: args.vat_rate,
           notes: args.notes,
+          receiptUrl: args.receipt_url,
         });
         return jsonResult(created);
       } catch (err) {
@@ -106,6 +111,7 @@ export function registerExpenseTools(server: McpServer): void {
         vat_amount: z.number().optional().nullable(),
         vat_rate: z.number().optional().nullable(),
         notes: z.string().optional().nullable(),
+        receipt_url: z.string().optional().nullable(),
       },
     },
     async (args) => {
@@ -122,6 +128,7 @@ export function registerExpenseTools(server: McpServer): void {
           vatAmount: args.vat_amount !== undefined ? args.vat_amount : current.vatAmount,
           vatRate: args.vat_rate !== undefined ? args.vat_rate : current.vatRate,
           notes: args.notes !== undefined ? args.notes : current.notes,
+          receiptUrl: args.receipt_url !== undefined ? args.receipt_url : current.receiptUrl,
         };
         const updated = await invox.put<Expense>(`/api/expenses/${args.expense_id}`, body);
         return jsonResult(updated);

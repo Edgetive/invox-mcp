@@ -1,14 +1,17 @@
 ---
-description: Use Invox MCP tools for Swedish invoicing — clients, invoices, expenses
+description: Use Invox MCP tools for Swedish invoicing — clients, invoices, expenses, receipts, bank statements
 alwaysApply: true
 ---
 
 # Invox
 
-When the user asks about invoices, clients, customers, expenses, or their Invox workspace:
+When the user asks about invoices, clients, customers, expenses, receipts, bank statements, or their Invox workspace:
 
 1. Prefer Invox MCP tools over inventing data.
 2. API keys are company-scoped; omit `company_id` unless the user specifies another workspace.
-3. Confirm destructive actions (delete client/invoice/expense, cancel invoice) before calling tools.
-4. Amounts are typically SEK; dates use `YYYY-MM-DD`.
+3. Confirm destructive actions (delete client/invoice/expense/document/statement, cancel invoice) before calling tools.
+4. Amounts are typically SEK; dates use `YYYY-MM-DD`; statement folders use `YYYY-MM`.
 5. Create invoices as `DRAFT` unless the user asks to send; use `send_invoice` to email the PDF.
+6. File uploads need `file_base64` + `filename` + `content_type` (pdf/png/jpeg/webp, max 10MB).
+7. Bank statements: `upload_bank_statement` then `get_bank_statement_transactions` (Business/Pro).
+8. Receipts: `upload_expense_document` → `extract_expense_from_document` → `confirm_expense_from_document`.

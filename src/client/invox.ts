@@ -25,6 +25,22 @@ function baseUrl(): string {
   return (process.env.INVOX_API_BASE_URL || DEFAULT_BASE).replace(/\/$/, "");
 }
 
+function parseJsonBody(text: string): unknown {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
+function errorMessage(parsed: unknown, status: number): string {
+  if (typeof parsed === "object" && parsed && "message" in parsed) {
+    return String((parsed as { message: unknown }).message);
+  }
+  return `Invox API error ${status}`;
+}
+
 async function request<T>(
   method: string,
   path: string,
@@ -54,21 +70,37 @@ async function request<T>(
   }
 
   const text = await res.text();
-  let parsed: unknown = null;
-  if (text) {
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      parsed = text;
-    }
-  }
+  const parsed = parseJsonBody(text);
 
   if (!res.ok) {
-    const message =
-      typeof parsed === "object" && parsed && "message" in parsed
-        ? String((parsed as { message: unknown }).message)
-        : `Invox API error ${res.status}`;
-    throw new InvoxApiError(message, res.status, parsed);
+    throw new InvoxApiError(errorMessage(parsed, res.status), res.status, parsed);
+  }
+
+  if (parsed && typeof parsed === "object" && "data" in parsed) {
+    return (parsed as ApiEnvelope<T>).data;
+  }
+  return parsed as T;
+}
+
+/**
+ * Multipart upload. Do not set Content-Type — fetch must supply the boundary.
+ */
+async function postForm<T>(path: string, form: FormData): Promise<T> {
+  const authorization = getAuthorization();
+  const res = await fetch(`${baseUrl()}${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: authorization,
+      Accept: "application/json",
+    },
+    body: form,
+  });
+
+  const text = await res.text();
+  const parsed = parseJsonBody(text);
+
+  if (!res.ok) {
+    throw new InvoxApiError(errorMessage(parsed, res.status), res.status, parsed);
   }
 
   if (parsed && typeof parsed === "object" && "data" in parsed) {
@@ -83,7 +115,22 @@ export const invox = {
   put: <T>(path: string, body: unknown) => request<T>("PUT", path, { body }),
   delete: <T>(path: string) => request<T>("DELETE", path),
   getRaw: (path: string) => request<Response>("GET", path, { raw: true }),
+  postForm: <T>(path: string, form: FormData) => postForm<T>(path, form),
 };
+
+/** Build a multipart file part from agent-supplied base64 content. */
+export function filePartFromBase64(
+  fileBase64: string,
+  filename: string,
+  contentType: string,
+): File {
+  const bytes = Buffer.from(fileBase64, "base64");
+  return new File([bytes], filename, { type: contentType });
+}
+
+export function currentYearMonth(): string {
+  return new Date().toISOString().slice(0, 7);
+}
 
 export type AuthMe = {
   userId: string;
@@ -167,9 +214,73 @@ export type Expense = {
   category: string | null;
   description: string | null;
   vendor: string | null;
+  receiptUrl: string | null;
   vatAmount: number | null;
   vatRate: number | null;
   notes: string | null;
+};
+
+export type BankStatementDocument = {
+  id: string;
+  companyId: string;
+  folderYearMonth: string;
+  originalFilename: string;
+  contentType: string;
+  fileSize: number;
+  uploadedBy?: string | null;
+  uploadedAt?: string;
+  createdAt?: string;
+};
+
+export type BankStatementTransaction = {
+  id: string;
+  companyId: string;
+  statementId: string;
+  bookingDate: string | null;
+  valueDate: string | null;
+  description: string | null;
+  amount: number | null;
+  balance: number | null;
+  currency: string | null;
+  lineNumber: number | null;
+  rawLine: string | null;
+  createdAt: string;
+};
+
+export type IncomingInvoiceDocument = {
+  id: string;
+  companyId: string;
+  folderYearMonth: string;
+  originalFilename: string;
+  contentType: string;
+  fileSize: number;
+  createdAt: string;
+};
+
+export type ExpenseExtractionDraft = {
+  id: string;
+  documentId: string;
+  companyId: string;
+  status: string;
+  suggestedExpense: {
+    documentId: string;
+    vendor: string | null;
+    expenseDate: string | null;
+    amount: number | null;
+    currency: string | null;
+    vatAmount: number | null;
+    vatRate: number | null;
+    category: string | null;
+    description: string | null;
+    requiredMissingFields: string[];
+    confidenceJson: string | null;
+  } | null;
+  rawText: string | null;
+  failureReason: string | null;
+  confirmedByUserId: string | null;
+  confirmedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
 /** Resolve the workspace for this API key (keys are company-scoped). */

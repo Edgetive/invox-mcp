@@ -38,6 +38,10 @@ Ask your agent to, for example:
 - Draft, send, or cancel invoices
 - Mark invoices as paid
 - Log and list expenses
+- Upload receipts, extract fields with OCR/AI, and confirm expenses
+- Upload bank statements and review extracted transactions (Business/Pro)
+
+File uploads use base64 (`file_base64` + `filename` + `content_type`). Allowed types: PDF, PNG, JPEG, WebP (max 10MB).
 
 ## Cursor plugin
 

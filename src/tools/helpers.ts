@@ -13,9 +13,9 @@ export function toolError(err: unknown): CallToolResult {
       err.status === 401
         ? " Check that your Invox API key is valid and not revoked."
         : err.status === 403
-          ? " API access requires the Pro plan, or you lack permission for this action."
+          ? " API/MCP access requires Solo Plus or Pro. Bank statement import requires Business or Pro, or you lack permission for this action."
           : err.status === 402
-            ? " A plan limit was exceeded (clients, invoices, etc.)."
+            ? " A plan limit was exceeded (clients, invoices, storage, or monthly AI extractions)."
             : "";
     return {
       isError: true,

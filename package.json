@@ -1,7 +1,7 @@
 {
   "name": "invox-mcp",
-  "version": "1.0.0",
-  "description": "Hosted MCP server for Invox — invoices, clients, expenses via AI agents",
+  "version": "1.1.0",
+  "description": "Hosted MCP server for Invox — invoices, clients, expenses, receipts, and bank statements via AI agents",
   "type": "module",
   "private": true,
   "engines": {
