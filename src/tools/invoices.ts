@@ -17,6 +17,12 @@ const lineItemSchema = z.object({
   sort_order: z.number().int().optional(),
 });
 
+/** The backend names the file in the invoice's own language, so prefer its name over ours. */
+function filenameFromDisposition(res: Response): string | null {
+  const disposition = res.headers.get("content-disposition");
+  return disposition?.match(/filename="([^"]+)"/)?.[1] ?? null;
+}
+
 function toApiItems(items: z.infer<typeof lineItemSchema>[]): InvoiceItemInput[] {
   return items.map((item, index) => ({
     description: item.description,
@@ -73,17 +79,34 @@ export function registerInvoiceTools(server: McpServer): void {
     "create_invoice",
     {
       description:
-        "Create an invoice. Provide client_id, due_date, invoice_number, and line items. company_id defaults to the API key workspace.",
+        "Create an invoice. Provide client_id, invoice_number, and line items. company_id defaults to " +
+        "the API key workspace, and due_date defaults to the workspace payment terms. " +
+        "Language and payment reference are both resolved at creation and then frozen onto the " +
+        "invoice, so leave them unset unless this one invoice needs to differ.",
       inputSchema: {
         company_id: z.string().uuid().optional(),
         client_id: z.string().uuid(),
         invoice_number: z.string().min(1),
-        due_date: z.string().describe("ISO date YYYY-MM-DD"),
+        due_date: z
+          .string()
+          .optional()
+          .describe("ISO date YYYY-MM-DD. Defaults to issue date plus the workspace payment terms"),
         issue_date: z.string().optional(),
         currency: z.string().optional(),
         status: z.enum(["DRAFT", "SENT"]).optional(),
         notes: z.string().optional(),
         terms: z.string().optional(),
+        invoice_language: z
+          .enum(["sv", "en"])
+          .optional()
+          .describe("Defaults to the client override, then the workspace default, then Swedish"),
+        payment_reference: z
+          .string()
+          .optional()
+          .describe(
+            "Defaults to a reference generated from the workspace OCR mode. Only set this to match " +
+              "a reference the client was already given",
+          ),
         items: z.array(lineItemSchema).min(1),
       },
     },
@@ -102,6 +125,8 @@ export function registerInvoiceTools(server: McpServer): void {
           status: args.status ?? "DRAFT",
           notes: args.notes,
           terms: args.terms,
+          invoiceLanguage: args.invoice_language,
+          paymentReference: args.payment_reference,
           invoiceItems: toApiItems(args.items),
         });
         return jsonResult(created);
@@ -114,7 +139,11 @@ export function registerInvoiceTools(server: McpServer): void {
   server.registerTool(
     "update_invoice",
     {
-      description: "Update an existing invoice (typically DRAFT). Pass full line items to replace them.",
+      description:
+        "Update an existing invoice (typically DRAFT). Pass full line items to replace them. " +
+        "invoice_language and payment_reference only apply while the invoice is still a draft: once " +
+        "it has been sent the recipient holds a document stating both, so the backend ignores changes " +
+        "to them rather than letting the stored invoice disagree with their copy.",
       inputSchema: {
         invoice_id: z.string().uuid(),
         client_id: z.string().uuid().optional(),
@@ -125,6 +154,8 @@ export function registerInvoiceTools(server: McpServer): void {
         status: z.string().optional(),
         notes: z.string().optional().nullable(),
         terms: z.string().optional().nullable(),
+        invoice_language: z.enum(["sv", "en"]).optional(),
+        payment_reference: z.string().optional(),
         items: z.array(lineItemSchema).optional(),
       },
     },
@@ -141,6 +172,8 @@ export function registerInvoiceTools(server: McpServer): void {
           status: args.status ?? current.status,
           notes: args.notes !== undefined ? args.notes : current.notes,
           terms: args.terms !== undefined ? args.terms : current.terms,
+          invoiceLanguage: args.invoice_language ?? current.invoiceLanguage,
+          paymentReference: args.payment_reference ?? current.paymentReference,
           invoiceItems: args.items
             ? toApiItems(args.items)
             : current.invoiceItems,
@@ -260,7 +293,7 @@ export function registerInvoiceTools(server: McpServer): void {
                 invoice_id,
                 content_type: res.headers.get("content-type") ?? "application/pdf",
                 size_bytes: buf.length,
-                filename: `invoice-${invoice_id}.pdf`,
+                filename: filenameFromDisposition(res) ?? `invoice-${invoice_id}.pdf`,
               }),
             },
             {

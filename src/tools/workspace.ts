@@ -28,7 +28,10 @@ export function registerWorkspaceTools(server: McpServer): void {
   server.registerTool(
     "get_workspace",
     {
-      description: "Get company/workspace profile details (name, address, bank details, VAT).",
+      description:
+        "Get company/workspace profile details: name, address, VAT, every payment method that can " +
+        "appear on an invoice (bankgiro, plusgiro, bank account, Swish, IBAN/BIC), the OCR reference " +
+        "mode, the default invoice language and the default payment terms.",
       inputSchema: {
         company_id: z.string().uuid().optional().describe("Defaults to the API key workspace"),
       },
@@ -47,7 +50,13 @@ export function registerWorkspaceTools(server: McpServer): void {
   server.registerTool(
     "update_workspace",
     {
-      description: "Update company/workspace profile fields (partial update).",
+      description:
+        "Update company/workspace profile fields (partial update). Payment methods set here are what " +
+        "the invoice's How to pay section offers the recipient, so filling in the ones the workspace " +
+        "actually accepts is the single biggest improvement to a confusing invoice. " +
+        "payment_reference_mode turns on Swedish OCR references: OCR_SOFT for a plain check digit, " +
+        "OCR_HARD when the bank also requires a length digit. Ask the workspace's bank which one the " +
+        "agreement uses rather than guessing, because a rejected reference delays reconciliation.",
       inputSchema: {
         company_id: z.string().uuid().optional(),
         name: z.string().optional(),
@@ -60,6 +69,19 @@ export function registerWorkspaceTools(server: McpServer): void {
         bank_account: z.string().optional(),
         bankgiro: z.string().optional(),
         plusgiro: z.string().optional(),
+        iban: z.string().optional().describe("International transfers. Validated as ISO 13616 mod-97"),
+        bic: z.string().optional().describe("8 or 11 characters, shown next to the IBAN"),
+        bank_name: z.string().optional(),
+        swish_number: z.string().optional().describe("Swish company number, e.g. 1231234567"),
+        payment_reference_mode: z
+          .enum(["NONE", "OCR_SOFT", "OCR_HARD"])
+          .optional()
+          .describe("NONE keeps the invoice number as the reference"),
+        default_invoice_language: z
+          .enum(["sv", "en"])
+          .optional()
+          .describe("Language new invoices are issued in unless the client overrides it"),
+        default_payment_terms_days: z.number().int().min(0).max(365).optional(),
         vat_number: z.string().optional(),
         registered_for_vat: z.boolean().optional(),
       },
@@ -80,6 +102,14 @@ export function registerWorkspaceTools(server: McpServer): void {
           bankAccount: args.bank_account ?? current.bankAccount,
           bankgiro: args.bankgiro ?? current.bankgiro,
           plusgiro: args.plusgiro ?? current.plusgiro,
+          iban: args.iban ?? current.iban,
+          bic: args.bic ?? current.bic,
+          bankName: args.bank_name ?? current.bankName,
+          swishNumber: args.swish_number ?? current.swishNumber,
+          paymentReferenceMode: args.payment_reference_mode ?? current.paymentReferenceMode,
+          defaultInvoiceLanguage: args.default_invoice_language ?? current.defaultInvoiceLanguage,
+          defaultPaymentTermsDays:
+            args.default_payment_terms_days ?? current.defaultPaymentTermsDays,
           vatNumber: args.vat_number ?? current.vatNumber,
           registeredForVat: args.registered_for_vat ?? current.registeredForVat,
         };

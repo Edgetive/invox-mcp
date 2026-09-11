@@ -1,5 +1,5 @@
 ---
-description: Use Invox MCP tools for Swedish invoicing — clients, invoices, expenses, receipts, bank statements
+description: Use Invox MCP tools for Swedish invoicing — clients, invoices, invoice design, expenses, receipts, bank statements
 alwaysApply: true
 ---
 
@@ -15,3 +15,8 @@ When the user asks about invoices, clients, customers, expenses, receipts, bank 
 6. File uploads need `file_base64` + `filename` + `content_type` (pdf/png/jpeg/webp, max 10MB).
 7. Bank statements: `upload_bank_statement` then `get_bank_statement_transactions` (Business/Pro).
 8. Receipts: `upload_expense_document` → `extract_expense_from_document` → `confirm_expense_from_document`.
+9. `due_date` is optional on `create_invoice` and defaults to the workspace payment terms.
+10. If an invoice does not explain how to pay, check `get_workspace` for missing bankgiro / Swish / IBAN before touching the template.
+11. Invoice language and payment reference are frozen when the invoice is created, so set them on `create_invoice`, or set `invoice_language` on the client so future invoices inherit it.
+12. Never guess `payment_reference_mode`: `OCR_SOFT` and `OCR_HARD` depend on the workspace's bank agreement, and the wrong one gets rejected by the bank.
+13. For design changes, `list_invoice_presets` for valid ids, then `preview_invoice_template` to show a real PDF before `set_invoice_template`.
