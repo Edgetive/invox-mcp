@@ -146,6 +146,11 @@ export type AuthMe = {
   }>;
 };
 
+/** NONE leaves the invoice number as the payment reference. */
+export type PaymentReferenceMode = "NONE" | "OCR_SOFT" | "OCR_HARD";
+
+export type DocumentLanguage = "sv" | "en";
+
 export type Company = {
   id: string;
   name: string;
@@ -159,6 +164,13 @@ export type Company = {
   bankAccount: string | null;
   bankgiro: string | null;
   plusgiro: string | null;
+  iban: string | null;
+  bic: string | null;
+  bankName: string | null;
+  swishNumber: string | null;
+  paymentReferenceMode: PaymentReferenceMode | null;
+  defaultInvoiceLanguage: DocumentLanguage | null;
+  defaultPaymentTermsDays: number | null;
   vatNumber: string | null;
   registeredForVat: boolean | null;
 };
@@ -176,6 +188,8 @@ export type Client = {
   email: string | null;
   phone: string | null;
   notes: string | null;
+  /** Null means the client inherits the workspace default. */
+  invoiceLanguage: DocumentLanguage | null;
 };
 
 export type InvoiceItemInput = {
@@ -202,7 +216,34 @@ export type Invoice = {
   paidDate: string | null;
   notes: string | null;
   terms: string | null;
+  invoiceLanguage: DocumentLanguage | null;
+  paymentReference: string | null;
   invoiceItems: Array<Record<string, unknown>>;
+};
+
+export type InvoicePresetCatalog = {
+  version: number;
+  defaults: InvoiceTemplateConfig;
+  presets: Array<{
+    id: string;
+    label: string;
+    description: string;
+    defaultAccentId: string;
+    thumbnailPath: string;
+    samplePdfPath: string;
+  }>;
+  accents: Array<{ id: string; label: string; strong: string; soft: string }>;
+  logoPositions: string[];
+  logoSizes: string[];
+};
+
+export type InvoiceTemplateConfig = {
+  version: number;
+  presetId: string;
+  accentId: string;
+  logo: { position: string; size: string };
+  showVatColumn: boolean;
+  showQrCode: boolean;
 };
 
 export type Expense = {

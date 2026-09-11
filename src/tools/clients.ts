@@ -63,6 +63,10 @@ export function registerClientTools(server: McpServer): void {
         email: z.string().email().optional(),
         phone: z.string().optional(),
         notes: z.string().optional(),
+        invoice_language: z
+          .enum(["sv", "en"])
+          .optional()
+          .describe("Overrides the workspace default for this client's invoices"),
       },
     },
     async (args) => {
@@ -79,6 +83,7 @@ export function registerClientTools(server: McpServer): void {
           email: args.email,
           phone: args.phone,
           notes: args.notes,
+          invoiceLanguage: args.invoice_language,
         });
         return jsonResult(created);
       } catch (err) {
@@ -104,6 +109,10 @@ export function registerClientTools(server: McpServer): void {
         email: z.string().optional().nullable(),
         phone: z.string().optional().nullable(),
         notes: z.string().optional().nullable(),
+        invoice_language: z
+          .enum(["sv", "en", ""])
+          .optional()
+          .describe("Empty string clears the override and falls back to the workspace default"),
       },
     },
     async (args) => {
@@ -122,6 +131,8 @@ export function registerClientTools(server: McpServer): void {
           email: args.email !== undefined ? args.email : current.email,
           phone: args.phone !== undefined ? args.phone : current.phone,
           notes: args.notes !== undefined ? args.notes : current.notes,
+          invoiceLanguage:
+            args.invoice_language !== undefined ? args.invoice_language : current.invoiceLanguage,
         };
         const updated = await invox.put<Client>(
           `/api/companies/${companyId}/clients/${args.client_id}`,
