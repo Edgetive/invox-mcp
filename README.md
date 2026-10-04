@@ -1,4 +1,5 @@
 # Invox MCP
+[![M8ven Score](https://m8ven.ai/badge/mcp/edgetive/invox-mcp)](https://m8ven.ai/mcp/edgetive/invox-mcp?s=readme)
 
 Hosted [Model Context Protocol](https://modelcontextprotocol.io) server for [Invox](https://invox.se).
 
